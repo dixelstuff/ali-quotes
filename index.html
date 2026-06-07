@@ -9,10 +9,11 @@
     --bg:#172234;
     --card:#edf3f8;
     --ink:#172234;
-    --muted:#657181;
+    --muted:#5f6f80;
     --line:#c7d5e2;
-    --accent:#2d6f8f;
-    --soft:#dcefff;
+    --accent:#dcefff;
+    --accentText:#1f5b7a;
+    --soft:#eef5fa;
     --green:#38a86b;
     --amber:#d8942b;
     --red:#d45266;
@@ -22,93 +23,96 @@
     margin:0; min-height:100%; background:var(--bg); color:var(--ink);
     font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   }
-  body{padding:12px 12px calc(154px + env(safe-area-inset-bottom));}
+  body{padding:12px 12px calc(164px + env(safe-area-inset-bottom));}
   .app{max-width:560px; margin:0 auto;}
   .top{
-    position:sticky; top:0; z-index:4;
-    background:var(--bg);
-    margin:-12px -12px 10px; padding:12px 12px 10px;
+    position:sticky; top:0; z-index:4; background:var(--bg);
+    margin:-12px -12px 10px; padding:12px 12px 8px;
   }
   .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .count{font-size:.84rem; color:#d9e5f2; font-weight:800;}
+  .count{font-size:.88rem; color:#d9e5f2; font-weight:850;}
   .stats{
     border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.08); color:#eaf3fb;
     border-radius:999px; padding:7px 10px; font-weight:850; font-size:.82rem;
   }
-  .bar{height:7px; border-radius:999px; background:rgba(255,255,255,.18); overflow:hidden; margin-top:9px;}
-  .bar span{display:block; height:100%; width:0%; background:var(--accent); border-radius:999px;}
   .card{
     background:var(--card); border:1px solid rgba(255,255,255,.30); border-radius:20px;
-    padding:16px 15px; min-height:430px; max-height:430px; overflow:auto;
+    padding:17px 16px; min-height:430px; max-height:430px; overflow:auto;
     display:flex; flex-direction:column; box-shadow:0 8px 24px rgba(3,12,25,.20);
   }
-  .cardHead{
-    display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:12px;
+  .cardHead{display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:13px;}
+  .tag,.status{
+    display:inline-block; font-size:.76rem; font-weight:850; padding:7px 9px;
+    border-radius:999px; white-space:nowrap;
   }
   .tag{
-    display:inline-block; font-size:.74rem; font-weight:850; color:#28566d;
-    background:rgba(220,239,255,.35); border:1px solid #9fbfd2;
-    padding:7px 9px; border-radius:999px;
+    color:#28566d; background:rgba(220,239,255,.35); border:1px solid #9fbfd2;
+    max-width:72%; overflow:hidden; text-overflow:ellipsis;
   }
   .status{
-    display:inline-block; font-size:.72rem; font-weight:900; color:#5d6875;
-    background:rgba(255,255,255,.35); border:1px solid #bdc9d5;
-    padding:7px 9px; border-radius:999px; white-space:nowrap;
+    color:#5d6875; background:rgba(255,255,255,.35); border:1px solid #bdc9d5;
   }
-  .status.new{color:#1f5b7a; background:rgba(220,239,255,.55); border-color:#94c6e8;}
+  .status.new{color:var(--accentText); background:rgba(220,239,255,.55); border-color:#94c6e8;}
+  .status.learn{color:#8a5b12; background:rgba(255,232,186,.62); border-color:#d4ad63;}
   .label{
-    font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;
-    font-weight:900; color:var(--muted); margin-bottom:7px;
+    font-size:.74rem; text-transform:uppercase; letter-spacing:.08em;
+    font-weight:900; color:var(--muted); margin-bottom:8px;
   }
   .prompt{
-    font-size:1.17rem; line-height:1.35; font-weight:820; letter-spacing:-.02em;
+    font-size:1.31rem; line-height:1.34; font-weight:830; letter-spacing:-.02em;
   }
   .context{
-    margin-top:14px; color:var(--muted); font-size:.98rem; line-height:1.4;
+    margin-top:15px; color:var(--muted); font-size:1.07rem; line-height:1.42;
+  }
+  .quoteLine{
+    font-size:1.22rem; line-height:1.42; font-weight:760;
   }
   .redacted{
-    margin-top:16px; padding:14px; border-radius:16px;
+    margin-top:17px; padding:15px; border-radius:16px;
     background:#f8fbfd; border:1px dashed #b8cad9;
-    font-size:1.08rem; line-height:1.45;
+    font-size:1.18rem; line-height:1.48;
   }
   .blank{
-    display:inline-block; min-width:54px; border-bottom:2px solid #8aa4bb;
-    transform:translateY(-2px); margin:0 2px; height:1.05em;
+    display:inline-block; min-width:58px; border-bottom:2px solid #8aa4bb;
+    transform:translateY(-2px); margin:0 3px; height:1.05em;
   }
   .answer{
     display:none; margin-top:18px; padding:15px; border-radius:16px;
     background:#f6fbf8; border:1px solid #c4e8d0;
   }
   .answer.show{display:block;}
-  .card.answering .context{display:none;}
+  .card.answering .context.preAnswer{display:none;}
   .answer .label{color:var(--green);}
-  .answerQuote{font-size:1.18rem; line-height:1.35; font-weight:850;}
-  .answerExplain{margin-top:9px; color:#4f6256; line-height:1.4; font-size:.95rem;}
-  .hint{display:none;}
+  .answerQuote{font-size:1.24rem; line-height:1.36; font-weight:850;}
+  .answerExplain{margin-top:10px; color:#4f6256; line-height:1.43; font-size:1.02rem;}
+  .empty{
+    justify-content:center; text-align:center; color:var(--muted);
+  }
+  .empty h2{color:var(--ink); margin:0 0 8px; font-size:1.55rem;}
+  .empty p{font-size:1.06rem; line-height:1.45; margin:0;}
   .bottom{
     position:fixed; left:0; right:0; bottom:0; z-index:10;
-    padding:10px 12px calc(58px + env(safe-area-inset-bottom));
+    padding:10px 12px calc(66px + env(safe-area-inset-bottom));
     background:var(--bg);
   }
   .bottom::before{
-    content:""; position:absolute; left:0; right:0; top:-28px; height:28px; background:var(--bg);
+    content:""; position:absolute; left:0; right:0; top:-34px; height:34px; background:var(--bg);
     pointer-events:none;
   }
-  .bottomInner{position:relative; z-index:1;}
-  .bottomInner{max-width:560px; margin:0 auto;}
+  .bottomInner{max-width:560px; margin:0 auto; position:relative; z-index:1;}
   button{font-family:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent;}
   .primary{
     width:100%; border:1px solid rgba(255,255,255,.35); border-radius:16px; padding:15px 16px;
-    font-size:1rem; font-weight:900; color:#1f5b7a; background:#dcefff;
+    font-size:1.02rem; font-weight:900; color:var(--accentText); background:var(--accent);
   }
   .grades{display:none; grid-template-columns:1fr 1fr 1fr; gap:8px;}
   .grades.show{display:grid;}
-  .grade{border:0; border-radius:16px; padding:14px 6px; color:#fff; font-weight:900; font-size:.94rem;}
+  .grade{border:0; border-radius:16px; padding:14px 6px; color:#fff; font-weight:900; font-size:.96rem;}
   .hard{background:var(--red);}
   .medium{background:var(--amber);}
   .easy{background:var(--green);}
   .modalBack{
-    display:none; position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.55);
+    display:none; position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.48);
     padding:18px 12px; align-items:flex-end;
   }
   .modalBack.show{display:flex;}
@@ -117,21 +121,17 @@
     padding:16px; box-shadow:0 24px 70px rgba(0,0,0,.22);
   }
   .modalHead{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
-  .modal h2{font-size:1.05rem; margin:0;}
-  .x{border:0; background:#e9f1f8; color:#2d6f8f; border-radius:999px; padding:8px 11px; font-weight:900;}
+  .modal h2{font-size:1.08rem; margin:0;}
+  .x{border:0; background:#dcefff; color:#2d6f8f; border-radius:999px; padding:8px 11px; font-weight:900;}
   .statsGrid{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
-  .stat{border:1px solid var(--line); border-radius:15px; padding:11px; background:#fff;}
-  .stat b{display:block; font-size:1.25rem;}
-  .stat span{font-size:.76rem; color:var(--muted); font-weight:800;}
-  .small{font-size:.86rem; color:var(--muted); line-height:1.45;}
+  .stat{border:1px solid var(--line); border-radius:15px; padding:11px; background:#f8fbfd;}
+  .stat b{display:block; font-size:1.28rem;}
+  .stat span{font-size:.78rem; color:var(--muted); font-weight:800;}
+  .small{font-size:.9rem; color:var(--muted); line-height:1.45;}
   .reset{width:100%; margin-top:12px; border:1px solid #ffd1d9; background:#fff5f7; color:#b23249; border-radius:14px; padding:11px; font-weight:900;}
   .hidden{display:none!important}
-  @media (max-height:720px){
-    .card{min-height:390px; max-height:390px;}
-  }
-  @media (max-height:650px){
-    .card{min-height:350px; max-height:350px;}
-  }
+  @media (max-height:720px){.card{min-height:390px; max-height:390px;}.bottom{padding-bottom:calc(52px + env(safe-area-inset-bottom));}body{padding-bottom:calc(146px + env(safe-area-inset-bottom));}}
+  @media (max-height:650px){.card{min-height:350px; max-height:350px;}.prompt{font-size:1.22rem}.context,.answerExplain{font-size:.98rem}}
 </style>
 </head>
 <body>
@@ -141,7 +141,6 @@
       <div class="count" id="count">Loading…</div>
       <button class="stats" id="statsBtn" type="button">Stats</button>
     </div>
-    <div class="bar"><span id="bar"></span></div>
   </div>
   <main id="main"></main>
 </div>
@@ -168,12 +167,15 @@
 </div>
 
 <script>
-const STORAGE_KEY = "quoteCardsLean_v1";
+const STORAGE_KEY = "quoteCardsSR_v3";
 const MIN = 60 * 1000;
 const DAY = 24 * 60 * MIN;
 
+// Extra exact quote note:
+// Only one extra short quote has been added from a public Fremantle Press podcast transcript.
+// Everything else is from the supplied quote list.
 const evidence = [
-  {topic:"Uncertainty", theme:"Unknown danger", quote:"That’s a boat!’ She cried,", cue:"Quote for sudden danger caused by uncertainty?", explanation:"Shows a sudden recognition that uncertainty may have dangerous consequences."},
+  {topic:"Uncertainty", theme:"Unknown danger", quote:"That’s a boat!’ She cried,", cue:"Quote for sudden danger caused by uncertainty?", explanation:"Shows sudden recognition that uncertainty may have dangerous consequences."},
   {topic:"Uncertainty", theme:"Unknown danger", quote:"She didn’t have a split second to spare", cue:"Quote for urgency under uncertainty?", explanation:"Shows uncertainty creating immediate pressure and danger."},
   {topic:"Uncertainty", theme:"Unknown danger", quote:"Sarah had fallen", cue:"Short quote for a sudden consequence?", explanation:"The blunt phrasing makes the consequence feel immediate."},
   {topic:"Uncertainty", theme:"Sea symbol", quote:"Deep swells and surging tides", cue:"Quote for the sea as changing and unpredictable?", explanation:"The sea’s movement symbolises instability and uncertainty."},
@@ -186,6 +188,7 @@ const evidence = [
   {topic:"Connection", theme:"Shared grief", quote:"To help with what I can", cue:"Quote for practical support easing suffering?", explanation:"Shows care through practical presence rather than perfect solutions."},
   {topic:"Connection", theme:"Shared grief", quote:"I’m sorry’ He said simply", cue:"Quote for simple empathy?", explanation:"Connection can be quiet, direct and emotionally useful."},
   {topic:"Connection", theme:"Shared grief", quote:"He reminded me of her, I guess. Or maybe of me.", cue:"Quote for connection through shared grief?", explanation:"Shows recognition of another person’s pain as familiar."},
+  {topic:"Connection", theme:"Shared grief", quote:"I guess he reminded me of bad days.", cue:"Quote for recognising another person’s suffering?", explanation:"A compact way to link connection with shared emotional experience."},
   {topic:"Connection", theme:"Parent-child", quote:"Ren stayed at his fathers bedside", cue:"Quote for family loyalty and presence?", explanation:"Staying at the bedside shows care and endurance."},
   {topic:"Connection", theme:"Parent-child", quote:"He swallowed against the grief", cue:"Quote for trying to contain grief?", explanation:"Shows suffering being held in, rather than removed."},
   {topic:"Connection", theme:"Parent-child", quote:"It’s a lot", cue:"Quote for the burden of caring for a parent?", explanation:"The understatement makes the suffering feel realistic."},
@@ -195,27 +198,56 @@ const evidence = [
 ];
 
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-
+function wordCount(q){return (q.match(/[A-Za-z’']+/g)||[]).length;}
 function redact(q){
   const parts = q.split(/(\s+)/);
   let blanks = 0;
-  return parts.map(w=>{
+  const targets = [];
+  parts.forEach((w,idx)=>{
     const plain = w.replace(/[^A-Za-z]/g,"");
-    if(plain.length >= 5 && blanks < 3){
+    if(plain.length >= 5) targets.push(idx);
+  });
+  if(targets.length < 2) return "";
+  const chosen = targets.slice(0, Math.min(3, targets.length));
+  return parts.map((w,idx)=>{
+    if(chosen.includes(idx)){
       blanks++;
       return '<span class="blank"></span>';
     }
     return esc(w);
   }).join("");
 }
+function quoteText(q){ return "“" + esc(q) + "”"; }
 
 function buildCards(){
   const cards = [];
   evidence.forEach((e,i)=>{
     const qid = "q"+i;
-    cards.push({id:qid+"_quote", qid, type:"quote", topic:e.topic, theme:e.theme, prompt:e.cue, context:"Recall the exact quote.", answer:e.quote, explanation:e.explanation});
-    cards.push({id:qid+"_blank", qid, type:"gaps", topic:e.topic, theme:e.theme, prompt:"Fill the missing words.", redacted:redact(e.quote), context:e.theme, answer:e.quote, explanation:e.explanation});
-    cards.push({id:qid+"_use", qid, type:"use", topic:e.topic, theme:e.theme, prompt:"What does this quote help prove?", context:"“"+e.quote+"”", answer:e.theme, explanation:e.explanation});
+
+    cards.push({
+      id:qid+"_quote", qid, type:"quote", rank:1,
+      topic:e.topic, theme:e.theme,
+      prompt:e.cue, context:"",
+      answer:e.quote, answerIsQuote:true, explanation:e.explanation
+    });
+
+    const r = redact(e.quote);
+    if(r){
+      cards.push({
+        id:qid+"_blank", qid, type:"gaps", rank:2,
+        topic:e.topic, theme:e.theme,
+        prompt:"Fill the missing words.", redacted:r, context:e.theme,
+        answer:e.quote, answerIsQuote:true, explanation:e.explanation
+      });
+    }
+
+    cards.push({
+      id:qid+"_use", qid, type:"use", rank:3,
+      topic:e.topic, theme:e.theme,
+      prompt:"What does this quote help prove?",
+      context:"“"+e.quote+"”",
+      answer:e.theme, answerIsQuote:false, explanation:e.explanation
+    });
   });
   return cards;
 }
@@ -224,12 +256,16 @@ const cards = buildCards();
 let state = load();
 let current = null;
 let lastQid = null;
+let sessionTick = state.sessionTick || 0;
 
 function freshState(){
   const now = Date.now();
   const s = {};
-  cards.forEach(c=>s[c.id]={due:now, seen:false, reps:0, ease:2.3, interval:0, lapses:0});
-  return {cards:s, history:[]};
+  cards.forEach(c=>s[c.id]={
+    status:"new", due:now, sessionDue:0, seen:false, reps:0, ease:2.3,
+    interval:0, lapses:0, lastGrade:null, lastReviewed:0
+  });
+  return {cards:s, history:[], sessionTick:0};
 }
 
 function load(){
@@ -238,33 +274,84 @@ function load(){
     if(!saved || !saved.cards) throw 0;
     const base = freshState();
     Object.keys(base.cards).forEach(id=>{ if(!saved.cards[id]) saved.cards[id] = base.cards[id]; });
+    Object.keys(saved.cards).forEach(id=>{ if(!base.cards[id]) delete saved.cards[id]; });
     saved.history = saved.history || [];
+    saved.sessionTick = saved.sessionTick || 0;
     return saved;
   }catch(e){ return freshState(); }
 }
-function save(){localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}
+function save(){ state.sessionTick = sessionTick; localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}
 function s(c){return state.cards[c.id];}
 
-function pick(){
+function eligibleReviews(){
   const now = Date.now();
-  const due = cards.filter(c=>s(c).seen && s(c).due <= now);
-  const fresh = cards.filter(c=>!s(c).seen);
+  return cards.filter(c=>{
+    const st = s(c);
+    return st.status !== "new" && (st.due <= now || st.sessionDue <= sessionTick);
+  });
+}
 
-  let pool = due.slice();
-  if((pool.length < 3 || pool.every(c=>c.qid===lastQid)) && fresh.length){
-    const nextFresh = fresh.sort((a,b)=>typeOrder(a)-typeOrder(b) || a.qid.localeCompare(b.qid))[0];
-    pool.push(nextFresh);
+function eligibleNew(){
+  return cards.filter(c=>s(c).status === "new");
+}
+
+function siblingPenalty(c){
+  return c.qid === lastQid ? 1000 : 0;
+}
+
+function pick(){
+  const reviews = eligibleReviews();
+  const fresh = eligibleNew();
+
+  let pool = [];
+  // The first run is not "all new": learning cards reappear by card-count spacing.
+  // Generally review first, but mix in new cards when review density gets too high.
+  if(reviews.length){
+    pool = reviews.slice();
+    if(fresh.length && reviews.length < 2 && sessionTick % 3 !== 0) pool.push(nextNew(fresh));
+  }else if(fresh.length){
+    pool = [nextNew(fresh)];
+  }else{
+    // No exact due cards. Keep the session alive by offering the soonest learning/review card again.
+    const seen = cards.filter(c=>s(c).status !== "new");
+    if(!seen.length) return null;
+    seen.sort((a,b)=>{
+      const as=s(a), bs=s(b);
+      return Math.min(as.sessionDue, 999999) - Math.min(bs.sessionDue, 999999) || as.due - bs.due;
+    });
+    return {...seen[0], early:true};
   }
-  if(!pool.length) return null;
+
+  pool = pool.filter(Boolean);
   pool.sort((a,b)=>{
-    if(a.qid===lastQid && b.qid!==lastQid) return 1;
-    if(b.qid===lastQid && a.qid!==lastQid) return -1;
-    if(s(a).seen !== s(b).seen) return s(a).seen ? -1 : 1;
-    return s(a).due - s(b).due;
+    const as=s(a), bs=s(b);
+    const aLearn = as.status === "learning" ? 0 : 1;
+    const bLearn = bs.status === "learning" ? 0 : 1;
+    return siblingPenalty(a)-siblingPenalty(b)
+      || aLearn-bLearn
+      || as.sessionDue-bs.sessionDue
+      || as.due-bs.due
+      || a.rank-b.rank;
   });
   return pool[0];
 }
-function typeOrder(c){return c.type==="quote"?1:c.type==="gaps"?2:3;}
+
+function nextNew(fresh){
+  // Mix the three card styles from the beginning, but avoid same quote back-to-back.
+  const preferredRank = (sessionTick % 3) + 1;
+  const candidates = fresh.filter(c=>c.rank === preferredRank && c.qid !== lastQid);
+  if(candidates.length) return candidates[0];
+  const noSibling = fresh.filter(c=>c.qid !== lastQid);
+  return (noSibling.length ? noSibling : fresh).sort((a,b)=>a.rank-b.rank || a.qid.localeCompare(b.qid))[0];
+}
+
+function statusLabel(card){
+  const st = s(card);
+  if(card.early) return "Ready again?";
+  if(st.status === "new") return "New";
+  if(st.status === "learning") return "Learning";
+  return "Review";
+}
 
 function render(){
   current = pick();
@@ -273,33 +360,45 @@ function render(){
   const main = document.getElementById("main");
   document.getElementById("revealBtn").classList.remove("hidden");
   document.getElementById("grades").classList.remove("show");
+  document.getElementById("revealBtn").textContent = current && current.early ? "Ready Again?" : "Reveal Answer";
 
   if(!current){
-    main.innerHTML = `<section class="card"><div class="prompt">All caught up.</div><div class="context">Come back later and the harder cards will reappear first.</div></section>`;
-    document.getElementById("revealBtn").classList.add("hidden");
+    main.innerHTML = `<section class="card empty"><h2>Ready?</h2><p>Start with a new card.</p></section>`;
     return;
   }
+
+  const st = s(current);
+  const status = statusLabel(current);
+  const statusClass = st.status === "new" ? "new" : st.status === "learning" || current.early ? "learn" : "";
 
   main.innerHTML = `
     <section class="card">
       <div class="cardHead">
         <span class="tag">${esc(current.topic)}</span>
-        <span class="status ${s(current).seen ? "" : "new"}">${s(current).seen ? "Review" : "New"}</span>
+        <span class="status ${statusClass}">${status}</span>
       </div>
       <div class="prompt">${esc(current.prompt)}</div>
       ${current.redacted ? `<div class="redacted">“${current.redacted}”</div>` : ""}
-      <div class="context" id="cardContext">${esc(current.context || "")}</div>
+      ${current.context ? `<div class="context preAnswer ${current.type === "use" ? "quoteLine" : ""}">${esc(current.context)}</div>` : ""}
       <div class="answer" id="answer">
         <div class="label">Answer</div>
-        <div class="answerQuote">${current.type === "use" ? esc(current.answer) : "“" + esc(current.answer) + "”"}</div>
+        <div class="answerQuote">${current.answerIsQuote ? quoteText(current.answer) : esc(current.answer)}</div>
         <div class="answerExplain">${esc(current.explanation)}</div>
       </div>
-
     </section>`;
 }
 
 function reveal(){
   if(!current) return;
+  if(current.early){
+    // Make the soonest card due now, then display it normally.
+    const real = cards.find(c=>c.id === current.id);
+    s(real).sessionDue = sessionTick;
+    s(real).due = Date.now();
+    current = real;
+    render();
+    return;
+  }
   document.getElementById("answer").classList.add("show");
   document.querySelector(".card")?.classList.add("answering");
   document.getElementById("revealBtn").classList.add("hidden");
@@ -307,64 +406,92 @@ function reveal(){
 }
 
 function grade(g){
-  if(!current) return;
+  if(!current || current.early) return;
   const st = s(current);
   const now = Date.now();
-  const wasNew = !st.seen;
+  const wasNew = st.status === "new";
+  sessionTick++;
   st.seen = true;
   st.reps++;
+  st.lastGrade = g;
+  st.lastReviewed = now;
 
-  if(g==="hard"){
+  // Hybrid spaced repetition:
+  // 1) session spacing by number of intervening cards, so learning repeats appear immediately in the first run
+  // 2) real time spacing for persistence across reloads/days
+  // 3) sibling separation so alternate card styles reinforce the same quote without clustering too tightly
+  if(g === "hard"){
     st.lapses++;
     st.ease = Math.max(1.3, st.ease - .22);
-    st.interval = wasNew || st.interval < 1 ? 10*MIN : Math.max(30*MIN, Math.round(st.interval*.65));
-  }else if(g==="medium"){
+    st.status = "learning";
+    st.sessionDue = sessionTick + 2;
+    st.interval = 4 * MIN;
+  }else if(g === "medium"){
     st.ease = Math.max(1.45, st.ease - .03);
-    st.interval = wasNew || st.interval < 1 ? 6*60*MIN : Math.max(12*60*MIN, Math.round(st.interval*1.8));
+    if(st.reps < 3){
+      st.status = "learning";
+      st.sessionDue = sessionTick + 5;
+      st.interval = 20 * MIN;
+    }else{
+      st.status = "review";
+      st.sessionDue = sessionTick + 14;
+      st.interval = Math.max(8 * 60 * MIN, Math.round((st.interval || 6*60*MIN) * 1.7));
+    }
   }else{
     st.ease = Math.min(3.2, st.ease + .08);
-    st.interval = wasNew || st.interval < 1 ? 2*DAY : Math.max(2*DAY, Math.round(st.interval*st.ease));
+    if(wasNew){
+      st.status = "learning";
+      st.sessionDue = sessionTick + 9;
+      st.interval = 90 * MIN;
+    }else{
+      st.status = "review";
+      st.sessionDue = sessionTick + 22;
+      st.interval = Math.max(1 * DAY, Math.round((st.interval || 1*DAY) * st.ease));
+    }
   }
 
   st.due = now + st.interval;
-  st.lastGrade = g;
   lastQid = current.qid;
-  state.history.push({id:current.id, grade:g, t:now});
-  if(state.history.length > 500) state.history = state.history.slice(-500);
+  state.history.push({id:current.id, qid:current.qid, grade:g, t:now, tick:sessionTick});
+  if(state.history.length > 800) state.history = state.history.slice(-800);
   save();
   render();
 }
 
 function updateTop(){
-  const seen = cards.filter(c=>s(c).seen).length;
-  const total = cards.length;
-  const due = cards.filter(c=>s(c).seen && s(c).due <= Date.now()).length;
-  document.getElementById("count").textContent = `${seen}/${total} cards · ${due} due`;
-  document.getElementById("bar").style.width = Math.round(seen/total*100) + "%";
+  const introduced = cards.filter(c=>s(c).status !== "new").length;
+  const due = eligibleReviews().length;
+  const learning = cards.filter(c=>s(c).status === "learning").length;
+  document.getElementById("count").textContent = `${introduced}/${cards.length} seen · ${learning} learning · ${due} due`;
 }
 
 function showStats(){
   updateTop();
-  const seen = cards.filter(c=>s(c).seen).length;
-  const due = cards.filter(c=>s(c).seen && s(c).due <= Date.now()).length;
+  const introduced = cards.filter(c=>s(c).status !== "new").length;
+  const due = eligibleReviews().length;
+  const learning = cards.filter(c=>s(c).status === "learning").length;
+  const review = cards.filter(c=>s(c).status === "review").length;
   const easy = Object.values(state.cards).filter(x=>x.lastGrade==="easy").length;
   const med = Object.values(state.cards).filter(x=>x.lastGrade==="medium").length;
   const hard = Object.values(state.cards).filter(x=>x.lastGrade==="hard").length;
 
   document.getElementById("statsContent").innerHTML = `
     <div class="statsGrid">
-      <div class="stat"><b>${seen}/${cards.length}</b><span>Seen</span></div>
+      <div class="stat"><b>${introduced}/${cards.length}</b><span>Seen</span></div>
+      <div class="stat"><b>${learning}</b><span>Learning</span></div>
+      <div class="stat"><b>${review}</b><span>Review</span></div>
       <div class="stat"><b>${due}</b><span>Due now</span></div>
-      <div class="stat"><b>${state.history.length}</b><span>Reviews</span></div>
+      <div class="stat"><b>${state.history.length}</b><span>Total reviews</span></div>
       <div class="stat"><b>${easy}/${med}/${hard}</b><span>Easy / Med / Hard</span></div>
     </div>
-    <p class="small">Hard returns soon. Medium later. Easy much later. Progress stays on this device.</p>
+    <p class="small">Cards repeat by session spacing as well as real time. Hard comes back after only a couple of intervening cards. Medium comes back after a few. Easy is delayed, but still reinforced.</p>
     <button class="reset" id="resetBtn" type="button">Reset progress</button>`;
   document.getElementById("modalBack").classList.add("show");
   document.getElementById("resetBtn").onclick = ()=>{
     if(confirm("Reset progress?")){
       localStorage.removeItem(STORAGE_KEY);
       state = load();
+      sessionTick = 0;
       document.getElementById("modalBack").classList.remove("show");
       render();
     }
