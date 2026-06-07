@@ -167,13 +167,11 @@
 </div>
 
 <script>
-const STORAGE_KEY = "quoteCardsSR_v3";
+const STORAGE_KEY = "quoteCardsSR_v5";
 const MIN = 60 * 1000;
 const DAY = 24 * 60 * MIN;
 
-// Extra exact quote note:
-// Added only short quote extracts found in public Fremantle Press teaching notes / podcast material.
-// Main essay-specific quotes remain mostly from the supplied quote list.
+// Uses only the quote list supplied by the student.
 const evidence = [
   {topic:"Uncertainty", theme:"Unknown danger", quote:"That’s a boat!’ She cried,", cue:"Quote for sudden danger caused by uncertainty?", explanation:"Shows sudden recognition that uncertainty may have dangerous consequences."},
   {topic:"Uncertainty", theme:"Unknown danger", quote:"She didn’t have a split second to spare", cue:"Quote for urgency under uncertainty?", explanation:"Shows uncertainty creating immediate pressure and danger."},
@@ -181,9 +179,6 @@ const evidence = [
   {topic:"Uncertainty", theme:"Sea symbol", quote:"Deep swells and surging tides", cue:"Quote for the sea as changing and unpredictable?", explanation:"The sea’s movement symbolises instability and uncertainty."},
   {topic:"Uncertainty", theme:"Sea symbol", quote:"He was just knee-deep in the water where he lost his brother", cue:"Quote linking water to loss?", explanation:"The sea becomes tied to grief, memory and the unknown."},
   {topic:"Uncertainty", theme:"Sea symbol", quote:"Then it becomes a fortress", cue:"Quote suggesting the sea/environment becomes a barrier?", explanation:"A fortress suggests something closed off and hard to penetrate."},
-  {topic:"Uncertainty", theme:"Sea as threat", quote:"battle the open sea", cue:"Quote for humans struggling against the sea?", explanation:"Useful for showing nature as an active threat, making uncertainty feel physical and dangerous."},
-  {topic:"Uncertainty", theme:"Sea as threat", quote:"the angry swirl of the world at sea", cue:"Quote for chaos and instability at sea?", explanation:"The sea becomes emotionally charged and unstable, strengthening the novel’s sense of uncertainty."},
-  {topic:"Uncertainty", theme:"Coastal Gothic", quote:"beach littered with people", cue:"Quote that makes the beach feel strange or unsettling?", explanation:"A familiar coastal place is made slightly uncomfortable, which suits the coastal Gothic mood."},
   {topic:"Uncertainty", theme:"Mental impact", quote:"It took me a long time… to move on", cue:"Quote for the long emotional impact of loss?", explanation:"Shows uncertainty and grief lingering over time."},
   {topic:"Uncertainty", theme:"Mental impact", quote:"Her scars stood out in the cold", cue:"Quote giving a physical image of trauma?", explanation:"Visible scars make emotional suffering feel bodily and lasting."},
   {topic:"Uncertainty", theme:"Mental impact", quote:"Brioney still didn’t know what grief was supposed to look like.", cue:"Quote directly linking grief and uncertainty?", explanation:"Shows uncertainty about how grief should even appear."},
@@ -194,8 +189,6 @@ const evidence = [
   {topic:"Connection", theme:"Shared grief", quote:"I guess he reminded me of bad days.", cue:"Quote for recognising another person’s suffering?", explanation:"A compact way to link connection with shared emotional experience."},
   {topic:"Connection", theme:"Parent-child", quote:"Ren stayed at his fathers bedside", cue:"Quote for family loyalty and presence?", explanation:"Staying at the bedside shows care and endurance."},
   {topic:"Connection", theme:"Parent-child", quote:"He swallowed against the grief", cue:"Quote for trying to contain grief?", explanation:"Shows suffering being held in, rather than removed."},
-  {topic:"Connection", theme:"Masked suffering", quote:"plastering a smile on his face", cue:"Quote for hiding suffering from others?", explanation:"This can help discuss how suffering is sometimes concealed, making genuine connection more important."},
-  {topic:"Connection", theme:"Emotional tension", quote:"her brows knitted together", cue:"Quote for visible worry or concern?", explanation:"A small physical detail that can support discussion of care, concern and emotional strain."},
   {topic:"Connection", theme:"Parent-child", quote:"It’s a lot", cue:"Quote for the burden of caring for a parent?", explanation:"The understatement makes the suffering feel realistic."},
   {topic:"Connection", theme:"Sibling", quote:"He’d been there on her worst day", cue:"Quote for sibling support during suffering?", explanation:"Shared history gives comfort and stability."},
   {topic:"Connection", theme:"Sibling", quote:"It would always be her brother Mike", cue:"Quote for lasting sibling connection?", explanation:"Shows the sibling bond remains emotionally central."},
@@ -261,7 +254,10 @@ const cards = buildCards();
 let state = load();
 let current = null;
 let lastQid = null;
+let recentQids = state.recentQids || [];
 let sessionTick = state.sessionTick || 0;
+
+const SIBLING_GAP = 6; // minimum number of other cards before the same quote/fact returns
 
 function freshState(){
   const now = Date.now();
@@ -270,7 +266,7 @@ function freshState(){
     status:"new", due:now, sessionDue:0, seen:false, reps:0, ease:2.3,
     interval:0, lapses:0, lastGrade:null, lastReviewed:0
   });
-  return {cards:s, history:[], sessionTick:0};
+  return {cards:s, history:[], sessionTick:0, recentQids:[]};
 }
 
 function load(){
@@ -282,10 +278,15 @@ function load(){
     Object.keys(saved.cards).forEach(id=>{ if(!base.cards[id]) delete saved.cards[id]; });
     saved.history = saved.history || [];
     saved.sessionTick = saved.sessionTick || 0;
+    saved.recentQids = saved.recentQids || [];
     return saved;
   }catch(e){ return freshState(); }
 }
-function save(){ state.sessionTick = sessionTick; localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}
+function save(){
+  state.sessionTick = sessionTick;
+  state.recentQids = recentQids;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 function s(c){return state.cards[c.id];}
 
 function eligibleReviews(){
@@ -301,7 +302,31 @@ function eligibleNew(){
 }
 
 function siblingPenalty(c){
-  return c.qid === lastQid ? 2500 : 0;
+  const pos = recentQids.lastIndexOf(c.qid);
+  if(pos === -1) return 0;
+  // More recent siblings are penalised harder.
+  return 5000 + (pos + 1) * 1200;
+}
+
+function isRecentSibling(c){
+  return recentQids.includes(c.qid);
+}
+
+function rememberQid(qid){
+  recentQids.push(qid);
+  while(recentQids.length > SIBLING_GAP) recentQids.shift();
+}
+
+function pushSiblingCardsBack(qid){
+  // If another version of the same quote is already learning/review and about to appear,
+  // push it back by several intervening cards. This creates actual spacing, not just repetition.
+  cards.forEach(c=>{
+    if(c.qid !== qid || c.id === current.id) return;
+    const st = s(c);
+    if(st.status !== "new"){
+      st.sessionDue = Math.max(st.sessionDue || 0, sessionTick + SIBLING_GAP);
+    }
+  });
 }
 
 function pick(){
@@ -320,7 +345,7 @@ function pick(){
     // No exact due cards. Keep the session alive by offering the soonest learning/review card again.
     const seen = cards.filter(c=>s(c).status !== "new");
     if(!seen.length) return null;
-    const nonSiblingSeen = seen.filter(c => c.qid !== lastQid);
+    const nonSiblingSeen = seen.filter(c => !isRecentSibling(c));
     const fallbackPool = nonSiblingSeen.length ? nonSiblingSeen : seen;
     fallbackPool.sort((a,b)=>{
       const as=s(a), bs=s(b);
@@ -331,10 +356,9 @@ function pick(){
 
   pool = pool.filter(Boolean);
 
-  // Avoid sibling cards a bit more strongly: use another card when one is available.
-  // This keeps the three versions reinforcing the same quote without feeling bunched.
-  const nonSiblingPool = pool.filter(c => c.qid !== lastQid);
-  if(nonSiblingPool.length) pool = nonSiblingPool;
+  // Avoid recent siblings strongly: same quote/fact should return later, not just next-but-one.
+  const nonRecentPool = pool.filter(c => !isRecentSibling(c));
+  if(nonRecentPool.length) pool = nonRecentPool;
 
   pool.sort((a,b)=>{
     const as=s(a), bs=s(b);
@@ -352,9 +376,9 @@ function pick(){
 function nextNew(fresh){
   // Mix the three card styles from the beginning, but avoid same quote back-to-back.
   const preferredRank = (sessionTick % 3) + 1;
-  const candidates = fresh.filter(c=>c.rank === preferredRank && c.qid !== lastQid);
+  const candidates = fresh.filter(c=>c.rank === preferredRank && !isRecentSibling(c));
   if(candidates.length) return candidates[0];
-  const noSibling = fresh.filter(c=>c.qid !== lastQid);
+  const noSibling = fresh.filter(c=>!isRecentSibling(c));
   return (noSibling.length ? noSibling : fresh).sort((a,b)=>a.rank-b.rank || a.qid.localeCompare(b.qid))[0];
 }
 
@@ -465,6 +489,8 @@ function grade(g){
 
   st.due = now + st.interval;
   lastQid = current.qid;
+  rememberQid(current.qid);
+  pushSiblingCardsBack(current.qid);
   state.history.push({id:current.id, qid:current.qid, grade:g, t:now, tick:sessionTick});
   if(state.history.length > 800) state.history = state.history.slice(-800);
   save();
@@ -505,6 +531,7 @@ function showStats(){
       localStorage.removeItem(STORAGE_KEY);
       state = load();
       sessionTick = 0;
+      recentQids = [];
       document.getElementById("modalBack").classList.remove("show");
       render();
     }
