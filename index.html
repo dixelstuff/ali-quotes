@@ -54,19 +54,13 @@
   }
   .status.new{color:var(--accentText); background:rgba(220,239,255,.55); border-color:#94c6e8;}
   .status.learn{color:#8a5b12; background:rgba(255,232,186,.62); border-color:#d4ad63;}
-  .label{
-    font-size:.74rem; text-transform:uppercase; letter-spacing:.08em;
-    font-weight:900; color:var(--muted); margin-bottom:8px;
-  }
   .prompt{
     font-size:1.31rem; line-height:1.34; font-weight:830; letter-spacing:-.02em;
   }
   .context{
     margin-top:15px; color:var(--muted); font-size:1.07rem; line-height:1.42;
   }
-  .quoteLine{
-    font-size:1.22rem; line-height:1.42; font-weight:760;
-  }
+  .quoteLine{font-size:1.22rem; line-height:1.42; font-weight:760;}
   .redacted{
     margin-top:17px; padding:15px; border-radius:16px;
     background:#f8fbfd; border:1px dashed #b8cad9;
@@ -82,14 +76,23 @@
   }
   .answer.show{display:block;}
   .card.answering .context.preAnswer{display:none;}
-  .answer .label{color:var(--green);}
+  .answer .label{
+    font-size:.74rem; text-transform:uppercase; letter-spacing:.08em;
+    font-weight:900; color:var(--green); margin-bottom:8px;
+  }
   .answerQuote{font-size:1.24rem; line-height:1.36; font-weight:850;}
   .answerExplain{margin-top:10px; color:#4f6256; line-height:1.43; font-size:1.02rem;}
-  .empty{
+  .empty,.chooser{
     justify-content:center; text-align:center; color:var(--muted);
   }
-  .empty h2{color:var(--ink); margin:0 0 8px; font-size:1.55rem;}
-  .empty p{font-size:1.06rem; line-height:1.45; margin:0;}
+  .empty h2,.chooser h2{color:var(--ink); margin:0 0 8px; font-size:1.55rem;}
+  .empty p,.chooser p{font-size:1.06rem; line-height:1.45; margin:0 0 14px;}
+  .choiceGrid{display:grid; grid-template-columns:1fr; gap:10px; margin-top:16px;}
+  .choice{
+    width:100%; border:1px solid #b6c7d7; background:#f8fbfd; color:var(--ink);
+    border-radius:18px; padding:16px; font-size:1.12rem; font-weight:900;
+  }
+  .choice small{display:block; color:var(--muted); font-weight:750; margin-top:4px;}
   .bottom{
     position:fixed; left:0; right:0; bottom:0; z-index:10;
     padding:10px 12px calc(66px + env(safe-area-inset-bottom));
@@ -128,7 +131,11 @@
   .stat b{display:block; font-size:1.28rem;}
   .stat span{font-size:.78rem; color:var(--muted); font-weight:800;}
   .small{font-size:.9rem; color:var(--muted); line-height:1.45;}
-  .reset{width:100%; margin-top:12px; border:1px solid #ffd1d9; background:#fff5f7; color:#b23249; border-radius:14px; padding:11px; font-weight:900;}
+  .reset,.switch{
+    width:100%; margin-top:12px; border-radius:14px; padding:11px; font-weight:900;
+  }
+  .reset{border:1px solid #ffd1d9; background:#fff5f7; color:#b23249;}
+  .switch{border:1px solid #b6c7d7; background:#f8fbfd; color:#28566d;}
   .hidden{display:none!important}
   @media (max-height:720px){.card{min-height:390px; max-height:390px;}.bottom{padding-bottom:calc(52px + env(safe-area-inset-bottom));}body{padding-bottom:calc(146px + env(safe-area-inset-bottom));}}
   @media (max-height:650px){.card{min-height:350px; max-height:350px;}.prompt{font-size:1.22rem}.context,.answerExplain{font-size:.98rem}}
@@ -145,7 +152,7 @@
   <main id="main"></main>
 </div>
 
-<div class="bottom">
+<div class="bottom" id="bottom">
   <div class="bottomInner">
     <button class="primary" id="revealBtn" type="button">Reveal Answer</button>
     <div class="grades" id="grades">
@@ -167,12 +174,21 @@
 </div>
 
 <script>
-const STORAGE_KEY = "quoteCardsSR_v5";
+const PROFILE_KEY = "quoteCardsLearner_v1";
+const LEGACY_ALI_KEY = "quoteCardsSR_v5";       // previous version: existing data automatically means Ali
+const ALI_KEY = LEGACY_ALI_KEY;
+const NEVE_KEY = "quoteCardsSR_neve_v1";
+
 const MIN = 60 * 1000;
 const DAY = 24 * 60 * MIN;
+const SIBLING_GAP = 7; // stronger spacing between cards about the same quote/fact
 
-// Uses only the quote list supplied by the student.
-const evidence = [
+const profiles = {
+  ali: {name:"Ali", emoji:"🐚", key:ALI_KEY},
+  neve:{name:"Neve", emoji:"🦉", key:NEVE_KEY}
+};
+
+const aliEvidence = [
   {topic:"Uncertainty", theme:"Unknown danger", quote:"That’s a boat!’ She cried,", cue:"Quote for sudden danger caused by uncertainty?", explanation:"Shows sudden recognition that uncertainty may have dangerous consequences."},
   {topic:"Uncertainty", theme:"Unknown danger", quote:"She didn’t have a split second to spare", cue:"Quote for urgency under uncertainty?", explanation:"Shows uncertainty creating immediate pressure and danger."},
   {topic:"Uncertainty", theme:"Unknown danger", quote:"Sarah had fallen", cue:"Short quote for a sudden consequence?", explanation:"The blunt phrasing makes the consequence feel immediate."},
@@ -186,7 +202,6 @@ const evidence = [
   {topic:"Connection", theme:"Shared grief", quote:"To help with what I can", cue:"Quote for practical support easing suffering?", explanation:"Shows care through practical presence rather than perfect solutions."},
   {topic:"Connection", theme:"Shared grief", quote:"I’m sorry’ He said simply", cue:"Quote for simple empathy?", explanation:"Connection can be quiet, direct and emotionally useful."},
   {topic:"Connection", theme:"Shared grief", quote:"He reminded me of her, I guess. Or maybe of me.", cue:"Quote for connection through shared grief?", explanation:"Shows recognition of another person’s pain as familiar."},
-  {topic:"Connection", theme:"Shared grief", quote:"I guess he reminded me of bad days.", cue:"Quote for recognising another person’s suffering?", explanation:"A compact way to link connection with shared emotional experience."},
   {topic:"Connection", theme:"Parent-child", quote:"Ren stayed at his fathers bedside", cue:"Quote for family loyalty and presence?", explanation:"Staying at the bedside shows care and endurance."},
   {topic:"Connection", theme:"Parent-child", quote:"He swallowed against the grief", cue:"Quote for trying to contain grief?", explanation:"Shows suffering being held in, rather than removed."},
   {topic:"Connection", theme:"Parent-child", quote:"It’s a lot", cue:"Quote for the burden of caring for a parent?", explanation:"The understatement makes the suffering feel realistic."},
@@ -195,50 +210,65 @@ const evidence = [
   {topic:"Connection", theme:"Sibling", quote:"Mike placed a hand on her shoulder", cue:"Quote for physical comfort from a sibling?", explanation:"A small gesture shows support without needing explanation."}
 ];
 
+const neveEvidence = [
+  {topic:"Uncertainty", theme:"Lack of closure", quote:"it just felt like living with a ghost… Seeing her things made me sick.", cue:"Quote for uncertainty trapping Briony in grief?", explanation:"Shows how Sarah’s absence turns ordinary domestic objects into painful reminders, because there is no closure."},
+  {topic:"Uncertainty", theme:"Guilt and what-ifs", quote:"I spent months beating myself up for every minute of the day my sister vanished.", cue:"Quote for uncertainty creating obsessive guilt?", explanation:"Briony replays the day of Sarah’s disappearance, torturing herself with what-if thinking."},
+  {topic:"Uncertainty", theme:"Mental toll", quote:"accustomed to waking in the night to panic attacks", cue:"Quote for the physical and mental toll of not knowing?", explanation:"The lack of answers becomes bodily trauma and sleep disruption."},
+
+  {topic:"Uncertainty", theme:"Survival fear", quote:"No one knew they were here.", cue:"Quote for being trapped without rescue?", explanation:"The girls realise no one is coming for them specifically, intensifying uncertainty about survival."},
+  {topic:"Uncertainty", theme:"Hope vs reality", quote:"We’ll be okay. People will notice when we don’t come home… Reality crept in with the darkness steadily engulfing the heart of the island.", cue:"Quote for hope being overtaken by fear?", explanation:"Aria tries to maintain hope, but the darkening island mirrors psychological panic."},
+  {topic:"Uncertainty", theme:"Fear beneath confidence", quote:"Sarah had assured her that they’d make it work, but Aria hadn’t missed the way her brows knitted together", cue:"Quote for fear showing beneath attempted confidence?", explanation:"Sarah’s body language reveals uncertainty even while she tries to sound brave."},
+
+  {topic:"Uncertainty", theme:"Anticipatory grief", quote:"Dad is refusing hospital treatment… I don’t think we have a lot of time left.", cue:"Quote for Ren facing an uncertain future loss?", explanation:"Ren knows death is coming but not when, creating an invisible countdown."},
+  {topic:"Uncertainty", theme:"Limbo", quote:"The father he’d loved and begrudged in equal measure was beside him in the same moments that he was gone", cue:"Quote for someone being present but already slipping away?", explanation:"Ren cannot process grief cleanly because his father feels both present and absent."},
+  {topic:"Uncertainty", theme:"Haunted home", quote:"There were ghosts here he wasn’t prepared to face.", cue:"Quote for the family home as a haunted space?", explanation:"The uncertainty of his father’s decline makes the home feel emotionally threatening."},
+
+  {topic:"Connection", theme:"Touch as stability", quote:"his hand found hers… it felt like an anchor… the ghosts of the past… seemed to retreat into the shadows", cue:"Quote for touch giving temporary stability?", explanation:"Physical connection offers something real and steady, pushing grief into the background."},
+  {topic:"Connection", theme:"Temporary escape", quote:"letting the physical sensation wash over her, drowning out the endless, agonizing questions that usually filled her mind", cue:"Quote for connection drowning out painful questions?", explanation:"Intimacy becomes a temporary escape from unanswerable grief and uncertainty."},
+  {topic:"Connection", theme:"Present moment relief", quote:"For the first time in months, he wasn't thinking about the hospital room or the ticking clock", cue:"Quote for connection pulling Ren into the present?", explanation:"Connection briefly interrupts Ren’s anticipatory grief about his father."},
+
+  {topic:"Connection", theme:"Sibling refuge", quote:"When he heard their father’s car pull up, they would slip out the back door", cue:"Quote for siblings escaping domestic conflict together?", explanation:"Ren and Sam’s bond becomes a refuge from the tension of their parents’ conflict."},
+  {topic:"Connection", theme:"Shared refuge", quote:"the sound of their parents’ arguing fading away until there was only the sound of the wind and each other.", cue:"Quote for sibling connection replacing conflict?", explanation:"The brothers find a physical and emotional refuge in each other’s presence."},
+  {topic:"Connection", theme:"Safe confusion", quote:"Why did Mum leave?", cue:"Quote for a sibling becoming a safe person to ask painful questions?", explanation:"Sam turns to Ren to process the divorce, showing sibling connection as emotional safety."},
+
+  {topic:"Connection", theme:"Reassurance", quote:"Aria shuffled closer. ‘We’ll be okay.’", cue:"Quote for simple human presence soothing fear?", explanation:"When terror peaks, Aria moves closer and offers reassurance."},
+  {topic:"Connection", theme:"Unspoken understanding", quote:"Sarah had assured her that they’d make it work, but Aria hadn’t missed the way her brows knitted together", cue:"Quote for reading another person’s fear?", explanation:"Aria notices Sarah’s hidden fear, showing unspoken understanding between them."},
+  {topic:"Connection", theme:"Survival comfort", quote:"they curled small against each other to keep the cold out.", cue:"Quote for physical closeness as survival and comfort?", explanation:"The girls use closeness to resist both literal cold and emotional terror."}
+];
+
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function wordCount(q){return (q.match(/[A-Za-z’']+/g)||[]).length;}
 function redact(q){
   const parts = q.split(/(\s+)/);
-  let blanks = 0;
   const targets = [];
   parts.forEach((w,idx)=>{
     const plain = w.replace(/[^A-Za-z]/g,"");
     if(plain.length >= 5) targets.push(idx);
   });
   if(targets.length < 2) return "";
-  const chosen = targets.slice(0, Math.min(3, targets.length));
-  return parts.map((w,idx)=>{
-    if(chosen.includes(idx)){
-      blanks++;
-      return '<span class="blank"></span>';
-    }
-    return esc(w);
-  }).join("");
+  const chosen = [];
+  const step = Math.max(1, Math.floor(targets.length / 3));
+  for(let i=0; i<targets.length && chosen.length<3; i+=step) chosen.push(targets[i]);
+  return parts.map((w,idx)=> chosen.includes(idx) ? '<span class="blank"></span>' : esc(w)).join("");
 }
 function quoteText(q){ return "“" + esc(q) + "”"; }
 
-function buildCards(){
+function buildCards(evidence){
   const cards = [];
   evidence.forEach((e,i)=>{
     const qid = "q"+i;
-
     cards.push({
       id:qid+"_quote", qid, type:"quote", rank:1,
-      topic:e.topic, theme:e.theme,
-      prompt:e.cue, context:"",
+      topic:e.topic, theme:e.theme, prompt:e.cue, context:"",
       answer:e.quote, answerIsQuote:true, explanation:e.explanation
     });
-
     const r = redact(e.quote);
     if(r){
       cards.push({
         id:qid+"_blank", qid, type:"gaps", rank:2,
-        topic:e.topic, theme:e.theme,
-        prompt:"Fill the missing words.", redacted:r, context:e.theme,
+        topic:e.topic, theme:e.theme, prompt:"Fill the missing words.", redacted:r, context:e.theme,
         answer:e.quote, answerIsQuote:true, explanation:e.explanation
       });
     }
-
     cards.push({
       id:qid+"_use", qid, type:"use", rank:3,
       topic:e.topic, theme:e.theme,
@@ -250,14 +280,35 @@ function buildCards(){
   return cards;
 }
 
-const cards = buildCards();
-let state = load();
+let profileId = getInitialProfile();
+let profile = profileId ? profiles[profileId] : null;
+let cards = profileId ? buildCards(profileId === "neve" ? neveEvidence : aliEvidence) : [];
+let state = profileId ? load() : null;
 let current = null;
 let lastQid = null;
-let recentQids = state.recentQids || [];
-let sessionTick = state.sessionTick || 0;
+let recentQids = state?.recentQids || [];
+let sessionTick = state?.sessionTick || 0;
 
-const SIBLING_GAP = 6; // minimum number of other cards before the same quote/fact returns
+function getInitialProfile(){
+  const hasAliLegacy = !!localStorage.getItem(LEGACY_ALI_KEY);
+  if(hasAliLegacy){
+    localStorage.setItem(PROFILE_KEY, "ali");
+    return "ali";
+  }
+  const saved = localStorage.getItem(PROFILE_KEY);
+  return saved && profiles[saved] ? saved : null;
+}
+
+function chooseProfile(id){
+  localStorage.setItem(PROFILE_KEY, id);
+  profileId = id;
+  profile = profiles[id];
+  cards = buildCards(id === "neve" ? neveEvidence : aliEvidence);
+  state = load();
+  recentQids = state.recentQids || [];
+  sessionTick = state.sessionTick || 0;
+  render();
+}
 
 function freshState(){
   const now = Date.now();
@@ -271,7 +322,7 @@ function freshState(){
 
 function load(){
   try{
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const saved = JSON.parse(localStorage.getItem(profile.key));
     if(!saved || !saved.cards) throw 0;
     const base = freshState();
     Object.keys(base.cards).forEach(id=>{ if(!saved.cards[id]) saved.cards[id] = base.cards[id]; });
@@ -282,10 +333,11 @@ function load(){
     return saved;
   }catch(e){ return freshState(); }
 }
+
 function save(){
   state.sessionTick = sessionTick;
   state.recentQids = recentQids;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(profile.key, JSON.stringify(state));
 }
 function s(c){return state.cards[c.id];}
 
@@ -296,67 +348,59 @@ function eligibleReviews(){
     return st.status !== "new" && (st.due <= now || st.sessionDue <= sessionTick);
   });
 }
-
-function eligibleNew(){
-  return cards.filter(c=>s(c).status === "new");
-}
+function eligibleNew(){ return cards.filter(c=>s(c).status === "new"); }
 
 function siblingPenalty(c){
   const pos = recentQids.lastIndexOf(c.qid);
   if(pos === -1) return 0;
-  // More recent siblings are penalised harder.
-  return 5000 + (pos + 1) * 1200;
+  return 6500 + (pos + 1) * 1500;
 }
-
-function isRecentSibling(c){
-  return recentQids.includes(c.qid);
-}
-
+function isRecentSibling(c){ return recentQids.includes(c.qid); }
 function rememberQid(qid){
   recentQids.push(qid);
   while(recentQids.length > SIBLING_GAP) recentQids.shift();
 }
-
 function pushSiblingCardsBack(qid){
-  // If another version of the same quote is already learning/review and about to appear,
-  // push it back by several intervening cards. This creates actual spacing, not just repetition.
   cards.forEach(c=>{
     if(c.qid !== qid || c.id === current.id) return;
     const st = s(c);
-    if(st.status !== "new"){
-      st.sessionDue = Math.max(st.sessionDue || 0, sessionTick + SIBLING_GAP);
-    }
+    if(st.status !== "new") st.sessionDue = Math.max(st.sessionDue || 0, sessionTick + SIBLING_GAP);
   });
+}
+
+function nextNew(fresh){
+  const preferredRank = (sessionTick % 3) + 1;
+  const candidates = fresh.filter(c=>c.rank === preferredRank && !isRecentSibling(c));
+  if(candidates.length) return candidates[0];
+  const noSibling = fresh.filter(c=>!isRecentSibling(c));
+  return (noSibling.length ? noSibling : fresh).sort((a,b)=>a.rank-b.rank || a.qid.localeCompare(b.qid))[0];
 }
 
 function pick(){
   const reviews = eligibleReviews();
   const fresh = eligibleNew();
-
   let pool = [];
-  // The first run is not "all new": learning cards reappear by card-count spacing.
-  // Generally review first, but mix in new cards when review density gets too high.
+
   if(reviews.length){
     pool = reviews.slice();
     if(fresh.length && reviews.length < 2 && sessionTick % 3 !== 0) pool.push(nextNew(fresh));
   }else if(fresh.length){
     pool = [nextNew(fresh)];
   }else{
-    // No exact due cards. Keep the session alive by offering the soonest learning/review card again.
     const seen = cards.filter(c=>s(c).status !== "new");
     if(!seen.length) return null;
     const nonSiblingSeen = seen.filter(c => !isRecentSibling(c));
     const fallbackPool = nonSiblingSeen.length ? nonSiblingSeen : seen;
     fallbackPool.sort((a,b)=>{
       const as=s(a), bs=s(b);
-      return Math.min(as.sessionDue, 999999) - Math.min(bs.sessionDue, 999999) || as.due - bs.due;
+      return siblingPenalty(a)-siblingPenalty(b)
+        || Math.min(as.sessionDue, 999999) - Math.min(bs.sessionDue, 999999)
+        || as.due - bs.due;
     });
     return {...fallbackPool[0], early:true};
   }
 
   pool = pool.filter(Boolean);
-
-  // Avoid recent siblings strongly: same quote/fact should return later, not just next-but-one.
   const nonRecentPool = pool.filter(c => !isRecentSibling(c));
   if(nonRecentPool.length) pool = nonRecentPool;
 
@@ -373,15 +417,6 @@ function pick(){
   return pool[0];
 }
 
-function nextNew(fresh){
-  // Mix the three card styles from the beginning, but avoid same quote back-to-back.
-  const preferredRank = (sessionTick % 3) + 1;
-  const candidates = fresh.filter(c=>c.rank === preferredRank && !isRecentSibling(c));
-  if(candidates.length) return candidates[0];
-  const noSibling = fresh.filter(c=>!isRecentSibling(c));
-  return (noSibling.length ? noSibling : fresh).sort((a,b)=>a.rank-b.rank || a.qid.localeCompare(b.qid))[0];
-}
-
 function statusLabel(card){
   const st = s(card);
   if(card.early) return "Ready again?";
@@ -390,7 +425,28 @@ function statusLabel(card){
   return "Review";
 }
 
+function renderChooser(){
+  document.getElementById("count").textContent = "Choose learner";
+  document.getElementById("statsBtn").classList.add("hidden");
+  document.getElementById("bottom").classList.add("hidden");
+  document.getElementById("main").innerHTML = `
+    <section class="card chooser">
+      <h2>Who’s learning?</h2>
+      <p>Each learner gets their own quote set and saved progress.</p>
+      <div class="choiceGrid">
+        <button class="choice" data-pick="ali">🐚 Ali<small>Original quote set</small></button>
+        <button class="choice" data-pick="neve">🦉 Neve<small>New quote set</small></button>
+      </div>
+    </section>`;
+  document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>chooseProfile(b.dataset.pick));
+}
+
 function render(){
+  if(!profileId){ renderChooser(); return; }
+
+  document.getElementById("statsBtn").classList.remove("hidden");
+  document.getElementById("bottom").classList.remove("hidden");
+
   current = pick();
   updateTop();
 
@@ -411,7 +467,7 @@ function render(){
   main.innerHTML = `
     <section class="card">
       <div class="cardHead">
-        <span class="tag">${esc(current.topic)}</span>
+        <span class="tag">${profile.emoji} ${esc(current.topic)}</span>
         <span class="status ${statusClass}">${status}</span>
       </div>
       <div class="prompt">${esc(current.prompt)}</div>
@@ -426,9 +482,8 @@ function render(){
 }
 
 function reveal(){
-  if(!current) return;
+  if(!profileId || !current) return;
   if(current.early){
-    // Make the soonest card due now, then display it normally.
     const real = cards.find(c=>c.id === current.id);
     s(real).sessionDue = sessionTick;
     s(real).due = Date.now();
@@ -453,36 +508,32 @@ function grade(g){
   st.lastGrade = g;
   st.lastReviewed = now;
 
-  // Hybrid spaced repetition:
-  // 1) session spacing by number of intervening cards, so learning repeats appear immediately in the first run
-  // 2) real time spacing for persistence across reloads/days
-  // 3) sibling separation so alternate card styles reinforce the same quote without clustering too tightly
   if(g === "hard"){
     st.lapses++;
     st.ease = Math.max(1.3, st.ease - .22);
     st.status = "learning";
-    st.sessionDue = sessionTick + 2;
+    st.sessionDue = sessionTick + 3;
     st.interval = 4 * MIN;
   }else if(g === "medium"){
     st.ease = Math.max(1.45, st.ease - .03);
     if(st.reps < 3){
       st.status = "learning";
-      st.sessionDue = sessionTick + 5;
+      st.sessionDue = sessionTick + 7;
       st.interval = 20 * MIN;
     }else{
       st.status = "review";
-      st.sessionDue = sessionTick + 14;
+      st.sessionDue = sessionTick + 16;
       st.interval = Math.max(8 * 60 * MIN, Math.round((st.interval || 6*60*MIN) * 1.7));
     }
   }else{
     st.ease = Math.min(3.2, st.ease + .08);
     if(wasNew){
       st.status = "learning";
-      st.sessionDue = sessionTick + 9;
+      st.sessionDue = sessionTick + 11;
       st.interval = 90 * MIN;
     }else{
       st.status = "review";
-      st.sessionDue = sessionTick + 22;
+      st.sessionDue = sessionTick + 24;
       st.interval = Math.max(1 * DAY, Math.round((st.interval || 1*DAY) * st.ease));
     }
   }
@@ -501,10 +552,11 @@ function updateTop(){
   const introduced = cards.filter(c=>s(c).status !== "new").length;
   const due = eligibleReviews().length;
   const learning = cards.filter(c=>s(c).status === "learning").length;
-  document.getElementById("count").textContent = `${introduced}/${cards.length} seen · ${learning} learning · ${due} due`;
+  document.getElementById("count").textContent = `${profile.emoji} ${profile.name} · ${introduced}/${cards.length} seen · ${learning} learning · ${due} due`;
 }
 
 function showStats(){
+  if(!profileId) return;
   updateTop();
   const introduced = cards.filter(c=>s(c).status !== "new").length;
   const due = eligibleReviews().length;
@@ -516,19 +568,28 @@ function showStats(){
 
   document.getElementById("statsContent").innerHTML = `
     <div class="statsGrid">
+      <div class="stat"><b>${profile.emoji} ${profile.name}</b><span>Learner</span></div>
       <div class="stat"><b>${introduced}/${cards.length}</b><span>Seen</span></div>
       <div class="stat"><b>${learning}</b><span>Learning</span></div>
       <div class="stat"><b>${review}</b><span>Review</span></div>
       <div class="stat"><b>${due}</b><span>Due now</span></div>
-      <div class="stat"><b>${state.history.length}</b><span>Total reviews</span></div>
       <div class="stat"><b>${easy}/${med}/${hard}</b><span>Easy / Med / Hard</span></div>
     </div>
-    <p class="small">Cards repeat by session spacing as well as real time. Hard comes back after only a couple of intervening cards. Medium comes back after a few. Easy is delayed, but still reinforced.</p>
-    <button class="reset" id="resetBtn" type="button">Reset progress</button>`;
+    <p class="small">Progress is saved separately for each learner on this device.</p>
+    <button class="switch" id="switchBtn" type="button">Switch learner</button>
+    <button class="reset" id="resetBtn" type="button">Reset ${profile.name} progress</button>`;
   document.getElementById("modalBack").classList.add("show");
+
+  document.getElementById("switchBtn").onclick = ()=>{
+    document.getElementById("modalBack").classList.remove("show");
+    localStorage.removeItem(PROFILE_KEY);
+    profileId = null; profile = null; cards = []; state = null; current = null;
+    renderChooser();
+  };
+
   document.getElementById("resetBtn").onclick = ()=>{
-    if(confirm("Reset progress?")){
-      localStorage.removeItem(STORAGE_KEY);
+    if(confirm("Reset progress for " + profile.name + "?")){
+      localStorage.removeItem(profile.key);
       state = load();
       sessionTick = 0;
       recentQids = [];
